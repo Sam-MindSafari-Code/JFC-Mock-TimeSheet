@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Timesheet Simulation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6fb;
+    }
+    header {
+      background: #1976d2;
+      color: white;
+      padding: 12px 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 6px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .hidden { display: none; }
+
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #1976d2;
+      color: white;
+      margin: 4px 2px;
+    }
+    button.secondary {
+      background: #9e9e9e;
+    }
+    button.danger {
+      background: #d32f2f;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="date"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 6px 8px;
+      margin: 4px 0 10px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-top: 6px;
+    }
+
+    .btn-row {
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #eeeeee;
+    }
+    .tag {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      display: inline-block;
+    }
+    .tag-submitted { background: #fff3cd; color: #856404; }
+    .tag-approved { background: #d4edda; color: #155724; }
+    .tag-unapproved { background: #f8d7da; color: #721c24; }
+
+    .top-links {
+      text-align: right;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .top-links button {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+
+    .small-note {
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Timesheet Simulation</h1>
+</header>
+<main>
+
+  <!-- Landing -->
+  <section id="landing" class="card">
+    <h2>Welcome</h2>
+    <p>Choose how you want to use the timesheet simulator.</p>
+    <div class="btn-row">
+      <button id="btnLandingEmployee">Employee</button>
+      <button id="btnLandingHR">HR</button>
+      <button id="btnLandingCreateAccount">Create Account</button>
+    </div>
+    <p class="small-note">
+      Default employee accounts:<br/>
+      <b>tianna / 12345</b><br/>
+      <b>lincoln / 12345</b>
+    </p>
+  </section>
+
+  <!-- Employee Login -->
+  <section id="employeeLogin" class="card hidden">
+    <div class="top-links">
+      <button class="secondary" id="backFromEmployeeLogin">Back</button>
+    </div>
+    <h2>Employee Login</h2>
+    <label>Username</label>
+    <input type="text" id="empUsername" placeholder="tianna" />
+    <label>Password</label>
+    <input type="password" id="empPassword" placeholder="12345" />
+    <div class="btn-row">
+      <button id="btnEmployeeLogin">Login</button>
+    </div>
+    <p class="small-note">
+      Default logins: <b>tianna / 12345</b> and <b>lincoln / 12345</b>.
+    </p>
+    <p id="empLoginError" class="small-note" style="color:#d32f2f;"></p>
+  </section>
+
+  <!-- HR Login -->
+  <section id="hrLogin" class="card hidden">
+    <div class="top-links">
+      <button class="secondary" id="backFromHRLogin">Back</button>
+    </div>
+    <h2>HR Login</h2>
+    <label>HR Password</label>
+    <input type="password" id="hrPassword" placeholder="Enter HR secret" />
+    <div class="btn-row">
+      <button id="btnHRLogin">Login as HR</button>
+    </div>
+    <p class="small-note">
+      Change the HR password inside the script if you want a different secret.
+    </p>
+    <p id="hrLoginError" class="small-note" style="color:#d32f2f;"></p>
+  </section>
+
+  <!-- Create Account -->
+  <section id="createAccount" class="card hidden">
+    <div class="top-links">
+      <button class="secondary" id="backFromCreateAccount">Back</button>
+    </div>
+    <h2>Create Employee Account</h2>
+    <p class="small-note">
+      This just adds an extra employee login in the browser (using localStorage).
+      The two default accounts still exist.
+    </p>
+    <label>New Username</label>
+    <input type="text" id="newUsername" />
+    <label>New Password</label>
+    <input type="password" id="newPassword" />
+    <div class="btn-row">
+      <button id="btnCreateAccount">Create Account</button>
+    </div>
+    <p id="createAccountMsg" class="small-note"></p>
+  </section>
+
+  <!-- Employee Area -->
+  <section id="employeeArea" class="card hidden">
+    <div class="top-links">
+      <span id="employeeWelcome"></span>
+      <button class="secondary" id="btnEmployeeLogout">Logout</button>
+    </div>
+    <h2>Your Timesheets</h2>
+    <button id="btnAddTimesheet">Add Timesheet</button>
+
+    <!-- Timesheet form for employee -->
+    <div id="employeeFormWrapper" class="hidden" style="margin-top:12px;">
+      <h3 id="employeeFormTitle">New Timesheet</h3>
+      <input type="hidden" id="tsEditId" />
+      <label>Date</label>
+      <input type="date" id="tsDate" />
+      <label>Duration (hours)</label>
+      <input type="number" id="tsDuration" min="0" step="0.25" />
+      <label>Unit</label>
+      <input type="text" value="Hours" disabled />
+      <label>Attendance Status</label>
+      <select id="tsAttendance">
+        <option value="Attended">Attended</option>
+        <option value="Not attended">Not attended</option>
+      </select>
+      <label>What you did today</label>
+      <textarea id="tsDescription"></textarea>
+      <div class="btn-row">
+        <button id="btnSaveTimesheet">Save &amp; Submit</button>
+        <button class="secondary" id="btnCancelTimesheet">Cancel</button>
+      </div>
+      <p class="small-note">
+        When you save, status will be set to <b>Submitted</b>. HR can then approve or mark it unapproved.
+      </p>
+    </div>
+
+    <!-- Employee timesheet table -->
+    <div id="employeeTimesheetList" style="margin-top:16px;"></div>
+  </section>
+
+  <!-- HR Area -->
+  <section id="hrArea" class="card hidden">
+    <div class="top-links">
+      <span><b>Logged in as HR</b></span>
+      <button class="secondary" id="btnHRLogout">Logout</button>
+    </div>
+    <h2>Review Timesheets</h2>
+    <div id="hrTimesheetList"></div>
+  </section>
+
+</main>
+
+<script>
+  const HR_PASSWORD_PLACEHOLDER = ""; // not used on frontend anymore
+
+  // ------- Section helpers -------
+  function showSection(id) {
+    const sections = [
+      "landing",
+      "employeeLogin",
+      "hrLogin",
+      "createAccount",
+      "employeeArea",
+      "hrArea"
+    ];
+    sections.forEach(s => document.getElementById(s).classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  let currentEmployee = null; // { username }
+
+  // ------- API helpers -------
+  async function apiPost(path, body) {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Request failed");
+    }
+    return res.json();
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(path);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Request failed");
+    }
+    return res.json();
+  }
+
+  async function apiPut(path, body) {
+    const res = await fetch(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Request failed");
+    }
+    return res.json();
+  }
+
+  // ------- Employee side -------
+
+  async function renderEmployeeTable() {
+    const wrapper = document.getElementById("employeeTimesheetList");
+    if (!currentEmployee) {
+      wrapper.innerHTML = "<p>Please log in.</p>";
+      return;
+    }
+
+    try {
+      const mine = await apiGet(`/api/timesheets?username=${encodeURIComponent(currentEmployee.username)}`);
+
+      if (mine.length === 0) {
+        wrapper.innerHTML = "<p>No timesheets yet.</p>";
+        return;
+      }
+
+      let html = "<table><thead><tr>" +
+        "<th>Date</th><th>Duration</th><th>Attendance</th>" +
+        "<th>What you did</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
+
+      mine.forEach(ts => {
+        let tagClass = "tag-submitted";
+        if (ts.status === "Approved") tagClass = "tag-approved";
+        else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
+
+        const canEdit = ts.status === "Unapproved";
+
+        html += `<tr>
+          <td>${ts.date}</td>
+          <td>${ts.duration} h</td>
+          <td>${ts.attendance}</td>
+          <td>${ts.description || ""}</td>
+          <td><span class="tag ${tagClass}">${ts.status}</span></td>
+          <td>${canEdit ? `<button data-id="${ts._id}" class="btn-edit-ts">Edit &amp; Resubmit</button>` : "-"}</td>
+        </tr>`;
+      });
+
+      html += "</tbody></table>";
+      wrapper.innerHTML = html;
+
+      document.querySelectorAll(".btn-edit-ts").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          openEmployeeEditForm(id);
+        });
+      });
+    } catch (e) {
+      wrapper.innerHTML = `<p style="color:#d32f2f;">Error loading timesheets: ${e.message}</p>`;
+    }
+  }
+
+  function openEmployeeNewForm() {
+    document.getElementById("employeeFormWrapper").classList.remove("hidden");
+    document.getElementById("employeeFormTitle").innerText = "New Timesheet";
+    document.getElementById("tsEditId").value = "";
+    document.getElementById("tsDate").valueAsNumber =
+      Date.now() - new Date().getTimezoneOffset() * 60000;
+    document.getElementById("tsDuration").value = "7";
+    document.getElementById("tsAttendance").value = "Attended";
+    document.getElementById("tsDescription").value = "";
+  }
+
+  async function openEmployeeEditForm(id) {
+    try {
+      const list = await apiGet(`/api/timesheets?username=${encodeURIComponent(currentEmployee.username)}`);
+      const ts = list.find(t => t._id === id);
+      if (!ts) return;
+
+      document.getElementById("employeeFormWrapper").classList.remove("hidden");
+      document.getElementById("employeeFormTitle").innerText = "Edit Timesheet";
+      document.getElementById("tsEditId").value = ts._id;
+      document.getElementById("tsDate").value = ts.date;
+      document.getElementById("tsDuration").value = ts.duration;
+      document.getElementById("tsAttendance").value = ts.attendance;
+      document.getElementById("tsDescription").value = ts.description || "";
+    } catch (e) {
+      alert("Error loading timesheet: " + e.message);
+    }
+  }
+
+  async function saveEmployeeTimesheet() {
+    const id = document.getElementById("tsEditId").value || null;
+    const date = document.getElementById("tsDate").value;
+    const duration = parseFloat(document.getElementById("tsDuration").value || "0");
+    const attendance = document.getElementById("tsAttendance").value;
+    const description = document.getElementById("tsDescription").value.trim();
+
+    if (!date || isNaN(duration)) {
+      alert("Please provide a valid date and duration.");
+      return;
+    }
+
+    try {
+      if (!id) {
+        await apiPost("/api/timesheets", {
+          username: currentEmployee.username,
+          date,
+          duration,
+          attendance,
+          description
+        });
+      } else {
+        await apiPut(`/api/timesheets/${id}`, {
+          username: currentEmployee.username,
+          date,
+          duration,
+          attendance,
+          description
+        });
+      }
+      document.getElementById("employeeFormWrapper").classList.add("hidden");
+      await renderEmployeeTable();
+      await renderHRTable(); // keep HR view in sync if open
+    } catch (e) {
+      alert("Error saving timesheet: " + e.message);
+    }
+  }
+
+  // ------- HR side -------
+
+  async function renderHRTable() {
+    const wrapper = document.getElementById("hrTimesheetList");
+    try {
+      const list = await apiGet("/api/hr/timesheets");
+      if (list.length === 0) {
+        wrapper.innerHTML = "<p>No timesheets yet.</p>";
+        return;
+      }
+
+      let html = "<table><thead><tr>" +
+        "<th>Employee</th><th>Date</th><th>Duration</th>" +
+        "<th>Attendance</th><th>What they did</th>" +
+        "<th>Status</th><th>Set Status</th></tr></thead><tbody>";
+
+      list.forEach(ts => {
+        let tagClass = "tag-submitted";
+        if (ts.status === "Approved") tagClass = "tag-approved";
+        else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
+
+        html += `<tr>
+          <td>${ts.username}</td>
+          <td>${ts.date}</td>
+          <td>${ts.duration} h</td>
+          <td>${ts.attendance}</td>
+          <td>${ts.description || ""}</td>
+          <td><span class="tag ${tagClass}">${ts.status}</span></td>
+          <td>
+            <select data-id="${ts._id}" class="hr-status-select">
+              <option value="Submitted" ${ts.status === "Submitted" ? "selected" : ""}>Submitted</option>
+              <option value="Approved" ${ts.status === "Approved" ? "selected" : ""}>Approved</option>
+              <option value="Unapproved" ${ts.status === "Unapproved" ? "selected" : ""}>Unapproved</option>
+            </select>
+          </td>
+        </tr>`;
+      });
+
+      html += "</tbody></table>";
+      html += `<div class="btn-row"><button id="btnHRSaveChanges">Save Changes</button></div>`;
+      wrapper.innerHTML = html;
+
+      document.getElementById("btnHRSaveChanges").addEventListener("click", async () => {
+        const selects = document.querySelectorAll(".hr-status-select");
+        try {
+          for (const sel of selects) {
+            const id = sel.getAttribute("data-id");
+            const status = sel.value;
+            await apiPut(`/api/hr/timesheets/${id}/status`, { status });
+          }
+          await renderHRTable();
+          if (currentEmployee) await renderEmployeeTable();
+          alert("Timesheet statuses updated.");
+        } catch (e) {
+          alert("Error saving statuses: " + e.message);
+        }
+      });
+    } catch (e) {
+      wrapper.innerHTML = `<p style="color:#d32f2f;">Error loading timesheets: ${e.message}</p>`;
+    }
+  }
+
+  // ------- Create account -------
+  async function createEmployeeAccount() {
+    const u = document.getElementById("newUsername").value.trim();
+    const p = document.getElementById("newPassword").value.trim();
+    const msg = document.getElementById("createAccountMsg");
+    msg.style.color = "#555";
+    msg.textContent = "";
+
+    if (!u || !p) {
+      msg.style.color = "#d32f2f";
+      msg.textContent = "Please provide both username and password.";
+      return;
+    }
+
+    try {
+      await apiPost("/api/users", { username: u, password: p });
+      msg.style.color = "#155724";
+      msg.textContent = "Account created. You can now log in as an employee.";
+      document.getElementById("newUsername").value = "";
+      document.getElementById("newPassword").value = "";
+    } catch (e) {
+      msg.style.color = "#d32f2f";
+      msg.textContent = e.message;
+    }
+  }
+
+  // ------- Event bindings -------
+  document.addEventListener("DOMContentLoaded", () => {
+    // Landing buttons
+    document.getElementById("btnLandingEmployee")
+      .addEventListener("click", () => showSection("employeeLogin"));
+    document.getElementById("btnLandingHR")
+      .addEventListener("click", () => showSection("hrLogin"));
+    document.getElementById("btnLandingCreateAccount")
+      .addEventListener("click", () => showSection("createAccount"));
+
+    // Back buttons
+    document.getElementById("backFromEmployeeLogin")
+      .addEventListener("click", () => showSection("landing"));
+    document.getElementById("backFromHRLogin")
+      .addEventListener("click", () => showSection("landing"));
+    document.getElementById("backFromCreateAccount")
+      .addEventListener("click", () => showSection("landing"));
+
+    // Employee login
+    document.getElementById("btnEmployeeLogin").addEventListener("click", async () => {
+      const username = document.getElementById("empUsername").value.trim();
+      const password = document.getElementById("empPassword").value.trim();
+      const errorEl = document.getElementById("empLoginError");
+      errorEl.textContent = "";
+
+      try {
+        const user = await apiPost("/api/auth/login", { username, password });
+        currentEmployee = { username: user.username };
+        document.getElementById("employeeWelcome").innerHTML =
+          "Logged in as <b>" + currentEmployee.username + "</b>";
+        showSection("employeeArea");
+        document.getElementById("employeeFormWrapper").classList.add("hidden");
+        await renderEmployeeTable();
+      } catch (e) {
+        errorEl.textContent = e.message;
+      }
+    });
+
+    // Employee logout
+    document.getElementById("btnEmployeeLogout").addEventListener("click", () => {
+      currentEmployee = null;
+      showSection("landing");
+    });
+
+    // Add timesheet
+    document.getElementById("btnAddTimesheet").addEventListener("click", () => {
+      openEmployeeNewForm();
+    });
+
+    // Save timesheet
+    document.getElementById("btnSaveTimesheet").addEventListener("click", () => {
+      saveEmployeeTimesheet();
+    });
+
+    // Cancel timesheet
+    document.getElementById("btnCancelTimesheet").addEventListener("click", () => {
+      document.getElementById("employeeFormWrapper").classList.add("hidden");
+    });
+
+    // HR login
+    document.getElementById("btnHRLogin").addEventListener("click", async () => {
+      const pw = document.getElementById("hrPassword").value;
+      const err = document.getElementById("hrLoginError");
+      err.textContent = "";
+      try {
+        await apiPost("/api/auth/hr-login", { password: pw });
+        showSection("hrArea");
+        await renderHRTable();
+      } catch (e) {
+        err.textContent = e.message;
+      }
+    });
+
+    // HR logout
+    document.getElementById("btnHRLogout").addEventListener("click", () => {
+      document.getElementById("hrPassword").value = "";
+      showSection("landing");
+    });
+
+    // Create account
+    document.getElementById("btnCreateAccount")
+      .addEventListener("click", createEmployeeAccount);
+  });
+</script>
+
+</body>
+</html>
