@@ -429,65 +429,71 @@
 
   // ------- HR side -------
 
-  async function renderHRTable() {
-    const wrapper = document.getElementById("hrTimesheetList");
-    try {
-      const list = await apiGet("/api/hr/timesheets");
-      if (list.length === 0) {
-        wrapper.innerHTML = "<p>No timesheets yet.</p>";
-        return;
-      }
+async function renderHRTable() {
+  const wrapper = document.getElementById("hrTimesheetList");
+  try {
+    const list = await apiGet("/api/hr-timesheets");  // <--- key change
 
-      let html = "<table><thead><tr>" +
-        "<th>Employee</th><th>Date</th><th>Duration</th>" +
-        "<th>Attendance</th><th>What they did</th>" +
-        "<th>Status</th><th>Set Status</th></tr></thead><tbody>";
-
-      list.forEach(ts => {
-        let tagClass = "tag-submitted";
-        if (ts.status === "Approved") tagClass = "tag-approved";
-        else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
-
-        html += `<tr>
-          <td>${ts.username}</td>
-          <td>${ts.date}</td>
-          <td>${ts.duration} h</td>
-          <td>${ts.attendance}</td>
-          <td>${ts.description || ""}</td>
-          <td><span class="tag ${tagClass}">${ts.status}</span></td>
-          <td>
-            <select data-id="${ts._id}" class="hr-status-select">
-              <option value="Submitted" ${ts.status === "Submitted" ? "selected" : ""}>Submitted</option>
-              <option value="Approved" ${ts.status === "Approved" ? "selected" : ""}>Approved</option>
-              <option value="Unapproved" ${ts.status === "Unapproved" ? "selected" : ""}>Unapproved</option>
-            </select>
-          </td>
-        </tr>`;
-      });
-
-      html += "</tbody></table>";
-      html += `<div class="btn-row"><button id="btnHRSaveChanges">Save Changes</button></div>`;
-      wrapper.innerHTML = html;
-
-      document.getElementById("btnHRSaveChanges").addEventListener("click", async () => {
-        const selects = document.querySelectorAll(".hr-status-select");
-        try {
-          for (const sel of selects) {
-            const id = sel.getAttribute("data-id");
-            const status = sel.value;
-            await apiPut(`/api/hr/timesheets/${id}/status`, { status });
-          }
-          await renderHRTable();
-          if (currentEmployee) await renderEmployeeTable();
-          alert("Timesheet statuses updated.");
-        } catch (e) {
-          alert("Error saving statuses: " + e.message);
-        }
-      });
-    } catch (e) {
-      wrapper.innerHTML = `<p style="color:#d32f2f;">Error loading timesheets: ${e.message}</p>`;
+    if (list.length === 0) {
+      wrapper.innerHTML = "<p>No timesheets yet.</p>";
+      return;
     }
+
+    let html = "<table><thead><tr>" +
+      "<th>Employee</th><th>Date</th><th>Duration</th>" +
+      "<th>Attendance</th><th>What they did</th>" +
+      "<th>Status</th><th>Set Status</th></tr></thead><tbody>";
+
+    list.forEach(ts => {
+      let tagClass = "tag-submitted";
+      if (ts.status === "Approved") tagClass = "tag-approved";
+      else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
+
+      html += `<tr>
+        <td>${ts.username}</td>
+        <td>${ts.date}</td>
+        <td>${ts.duration} h</td>
+        <td>${ts.attendance}</td>
+        <td>${ts.description || ""}</td>
+        <td><span class="tag ${tagClass}">${ts.status}</span></td>
+        <td>
+          <select data-id="${ts._id}" class="hr-status-select">
+            <option value="Submitted" ${ts.status === "Submitted" ? "selected" : ""}>Submitted</option>
+            <option value="Approved" ${ts.status === "Approved" ? "selected" : ""}>Approved</option>
+            <option value="Unapproved" ${ts.status === "Unapproved" ? "selected" : ""}>Unapproved</option>
+          </select>
+        </td>
+      </tr>`;
+    });
+
+    html += "</tbody></table>";
+    html += `<div class="btn-row"><button id="btnHRSaveChanges">Save Changes</button></div>`;
+    wrapper.innerHTML = html;
+
+    document.getElementById("btnHRSaveChanges").addEventListener("click", async () => {
+      const selects = document.querySelectorAll(".hr-status-select");
+      const updates = [];
+      selects.forEach(sel => {
+        updates.push({
+          id: sel.getAttribute("data-id"),
+          status: sel.value
+        });
+      });
+
+      try {
+        await apiPut("/api/hr-timesheets", { updates });   // <--- key change
+        await renderHRTable();
+        if (currentEmployee) await renderEmployeeTable();
+        alert("Timesheet statuses updated.");
+      } catch (e) {
+        alert("Error saving statuses: " + e.message);
+      }
+    });
+  } catch (e) {
+    wrapper.innerHTML = `<p style="color:#d32f2f;">Error loading timesheets: ${e.message}</p>`;
   }
+}
+
 
   // ------- Create account -------
   async function createEmployeeAccount() {
