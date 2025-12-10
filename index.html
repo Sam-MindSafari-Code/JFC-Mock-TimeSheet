@@ -284,6 +284,8 @@ td:nth-child(6) {
 <script>
   const HR_PASSWORD_PLACEHOLDER = ""; // not used on frontend anymore
 
+  let isSavingTimesheet = false;
+
   // ------- Section helpers -------
   function showSection(id) {
     const sections = [
@@ -426,43 +428,54 @@ html += `<tr>
     }
   }
 
-  async function saveEmployeeTimesheet() {
-    const id = document.getElementById("tsEditId").value || null;
-    const date = document.getElementById("tsDate").value;
-    const duration = parseFloat(document.getElementById("tsDuration").value || "0");
-    const attendance = document.getElementById("tsAttendance").value;
-    const description = document.getElementById("tsDescription").value.trim();
-
-    if (!date || isNaN(duration)) {
-      alert("Please provide a valid date and duration.");
-      return;
-    }
-
-    try {
-      if (!id) {
-        await apiPost("/api/timesheets", {
-          username: currentEmployee.username,
-          date,
-          duration,
-          attendance,
-          description
-        });
-      } else {
-        await apiPut(`/api/timesheets/${id}`, {
-          username: currentEmployee.username,
-          date,
-          duration,
-          attendance,
-          description
-        });
-      }
-      document.getElementById("employeeFormWrapper").classList.add("hidden");
-      await renderEmployeeTable();
-      await renderHRTable(); // keep HR view in sync if open
-    } catch (e) {
-      alert("Error saving timesheet: " + e.message);
-    }
+async function saveEmployeeTimesheet() {
+  if (isSavingTimesheet) {
+    // A save is already in progress; ignore extra clicks
+    return;
   }
+
+  const btn = document.getElementById("btnSaveTimesheet");
+
+  const date = document.getElementById("tsDate").value;
+  const duration = parseFloat(document.getElementById("tsDuration").value || "0");
+  const attendance = document.getElementById("tsAttendance").value;
+  const description = document.getElementById("tsDescription").value.trim();
+
+  if (!date || isNaN(duration)) {
+    alert("Please provide a valid date and duration.");
+    return;
+  }
+
+  try {
+    isSavingTimesheet = true;
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = "Saving...";
+
+    await apiPost("/api/timesheets", {
+      username: currentEmployee.username,
+      date,
+      duration,
+      attendance,
+      description
+    });
+
+    document.getElementById("employeeFormWrapper").classList.add("hidden");
+    await renderEmployeeTable();
+    await renderHRTable(); // update HR if open
+
+    // reset button text (it'll be ready for next time the form opens)
+    btn.textContent = originalText;
+    btn.disabled = false;
+    isSavingTimesheet = false;
+  } catch (e) {
+    isSavingTimesheet = false;
+    btn.disabled = false;
+    btn.textContent = "Save & Submit";
+    alert("Error saving timesheet: " + e.message);
+  }
+}
+
 
   // ------- HR side -------
 
