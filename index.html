@@ -366,7 +366,7 @@ th:nth-child(7), td:nth-child(7) {
         if (ts.status === "Approved") tagClass = "tag-approved";
         else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
 
-let actionText = "-";
+let actionText = "Pending review";
 if (ts.status === "Approved") {
   actionText = "Done";
 } else if (ts.status === "Unapproved") {
