@@ -33,6 +33,24 @@
     }
     .hidden { display: none; }
 
+
+    /* Make Status column wider */
+th:nth-child(6),
+td:nth-child(6) {
+  width: 100px;
+  white-space: nowrap;
+}
+
+/* Improve tag readability */
+.tag {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  display: inline-block;
+  font-weight: 600;
+}
+
+
     button {
       padding: 8px 14px;
       border: none;
@@ -153,7 +171,7 @@
     </div>
     <h2>Employee Login</h2>
     <label>Username</label>
-    <input type="text" id="empUsername" placeholder="name" />
+    <input type="text" id="empUsername" placeholder="tianna" />
     <label>Password</label>
     <input type="password" id="empPassword" placeholder="12345" />
     <div class="btn-row">
@@ -334,16 +352,15 @@
         if (ts.status === "Approved") tagClass = "tag-approved";
         else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
 
-        const canEdit = ts.status === "Unapproved";
+html += `<tr>
+  <td>${ts.date}</td>
+  <td>${ts.duration} h</td>
+  <td>${ts.attendance}</td>
+  <td>${ts.description || ""}</td>
+  <td><span class="tag ${tagClass}">${ts.status}</span></td>
+  <td>-</td>
+</tr>`;
 
-        html += `<tr>
-          <td>${ts.date}</td>
-          <td>${ts.duration} h</td>
-          <td>${ts.attendance}</td>
-          <td>${ts.description || ""}</td>
-          <td><span class="tag ${tagClass}">${ts.status}</span></td>
-          <td>${canEdit ? `<button data-id="${ts._id}" class="btn-edit-ts">Edit &amp; Resubmit</button>` : "-"}</td>
-        </tr>`;
       });
 
       html += "</tbody></table>";
@@ -608,4 +625,3 @@ async function renderHRTable() {
 
 </body>
 </html>
-
