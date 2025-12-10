@@ -352,14 +352,22 @@ td:nth-child(6) {
         if (ts.status === "Approved") tagClass = "tag-approved";
         else if (ts.status === "Unapproved") tagClass = "tag-unapproved";
 
+let actionText = "-";
+if (ts.status === "Approved") {
+  actionText = "Done";
+} else if (ts.status === "Unapproved") {
+  actionText = `<button data-redo="${ts._id}" class="btn-redo-ts">Redo Timesheet</button>`;
+}
+
 html += `<tr>
   <td>${ts.date}</td>
   <td>${ts.duration} h</td>
   <td>${ts.attendance}</td>
   <td>${ts.description || ""}</td>
   <td><span class="tag ${tagClass}">${ts.status}</span></td>
-  <td>-</td>
+  <td>${actionText}</td>
 </tr>`;
+
 
       });
 
