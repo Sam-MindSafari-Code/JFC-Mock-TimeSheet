@@ -181,9 +181,9 @@ td:nth-child(6) {
     </div>
     <h2>Employee Login</h2>
     <label>Username</label>
-    <input type="text" id="empUsername" placeholder="tianna" />
+    <input type="text" id="empUsername" placeholder="username" />
     <label>Password</label>
-    <input type="password" id="empPassword" placeholder="12345" />
+    <input type="password" id="empPassword" placeholder="password" />
     <div class="btn-row">
       <button id="btnEmployeeLogin">Login</button>
     </div>
@@ -366,8 +366,9 @@ let actionText = "-";
 if (ts.status === "Approved") {
   actionText = "Done";
 } else if (ts.status === "Unapproved") {
-  actionText = `<span class="redo-link" data-redo="${ts._id}">Redo Timesheet</span>`;
+  actionText = "Redo Timesheet"; // now just text
 }
+
 
 
 html += `<tr>
