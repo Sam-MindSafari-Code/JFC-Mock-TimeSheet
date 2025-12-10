@@ -33,6 +33,16 @@
     }
     .hidden { display: none; }
 
+.redo-link {
+  color: #0d47a1;
+  cursor: pointer;
+  font-weight: 600;
+}
+.redo-link:hover {
+  text-decoration: underline;
+}
+
+
 
     /* Make Status column wider */
 th:nth-child(6),
@@ -356,8 +366,9 @@ let actionText = "-";
 if (ts.status === "Approved") {
   actionText = "Done";
 } else if (ts.status === "Unapproved") {
-  actionText = `<button data-redo="${ts._id}" class="btn-redo-ts">Redo Timesheet</button>`;
+  actionText = `<span class="redo-link" data-redo="${ts._id}">Redo Timesheet</span>`;
 }
+
 
 html += `<tr>
   <td>${ts.date}</td>
